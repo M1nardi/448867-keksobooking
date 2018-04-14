@@ -27,18 +27,29 @@ var Y_COORDINATES_MAX = 500;
 var MAP_PIN_WIDTH = 50;
 var MAP_PIN_HEIGHT = 70;
 
-var getRandom = function (min, max) {
+var houseArray;
+
+function getRandom(min, max) {
   var rand = min + Math.random() * (max + 1 - min);
   rand = Math.floor(rand);
   return rand;
-};
+}
 
-var getAvatarImage = function () {
+function getAvatarImage() {
   var avatarImage = AVATAR_IMAGE_URL + '0' + getRandom(1, HOUSE_NUMBER) + AVATAR_FORMAT;
   return avatarImage;
-};
+}
 
-var getAdvertisment = function () {
+
+function shuffleArrayCondition() {
+  return Math.random() - 0.5;
+}
+
+function shuffleArray(arr) {
+  return arr.sort(shuffleArrayCondition);
+}
+
+var generateAdvertisment = function () {
   var adAvatar = getAvatarImage();
   var adTitle = HOUSE_TITLES[getRandom(0, HOUSE_TITLES.length - 1)];
   var adPrice = getRandom(PRICE_VALUE_MIN, PRICE_VALUE_MAX);
@@ -48,7 +59,7 @@ var getAdvertisment = function () {
   var adCheckIn = CHECK_TIME_VARIANTS[getRandom(0, CHECK_TIME_VARIANTS.length - 1)];
   var adCheckOut = CHECK_TIME_VARIANTS[getRandom(0, CHECK_TIME_VARIANTS.length - 1)];
   var adFeatures = FEATURES[getRandom(0, FEATURES.length - 1)];
-  var adPhotos = PHOTOS;
+  var adPhotos = shuffleArray(PHOTOS);
   var adCoordinateX = getRandom(X_COORDINATES_MIN, X_COORDIATES_MAX);
   var adCoordinateY = getRandom(Y_COORDINATES_MIN, Y_COORDINATES_MAX);
 
@@ -58,7 +69,7 @@ var getAdvertisment = function () {
     },
     'offer': {
       'title': adTitle,
-      'address': location.x + ', ' + location.y,
+      'address': adCoordinateX + ', ' + adCoordinateY,
       'price': adPrice,
       'type': adType,
       'rooms': adRooms,
@@ -77,17 +88,37 @@ var getAdvertisment = function () {
   };
 };
 
-var generateArray = function (count) {
-  var array = [];
+function generateArray(count) {
+  houseArray = [];
 
   for (var i = 0; i < count; i++) {
-    array[i] = getAdvertisment();
+    houseArray[i] = generateAdvertisment();
   }
-
-  return array;
-};
+  return houseArray;
+}
 
 generateArray(HOUSE_NUMBER);
 
 var map = document.querySelector('.map');
 map.classList.remove('map--faded');
+
+function createPin(locationX, locationY, title) {
+  var newPin = document.createElement('button');
+  newPin.className = 'map__pin';
+  newPin.style = 'left: ' + locationX + 'px; ' + 'top: ' + locationY + 'px;';
+  newPin.alt = title;
+  return newPin;
+}
+
+function createMapPins() {
+  var pins = document.querySelector('.map__pins');
+  var fragment = document.createDocumentFragment();
+
+  for (var i = 0; i < HOUSE_NUMBER; i++) {
+    fragment.appendChild(createPin(houseArray[i].location.x, houseArray[i].location.y));
+  }
+
+  pins.appendChild(fragment);
+}
+
+createMapPins();
